@@ -15,6 +15,7 @@ struct ExpenseModel: Hashable {
     let imageURL: URL?
     let record: CKRecord
     
+    
 }
 // MARK: - ExpenseView
 
