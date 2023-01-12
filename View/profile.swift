@@ -70,6 +70,7 @@ class ExpenseUserViewModel: ObservableObject {
 
 struct profile: View {
     @StateObject private var vm = ExpenseUserViewModel()
+    @StateObject private var notify = CloudKitPushNotificationViewModel()
     
     var body: some View {
         VStack {
@@ -80,6 +81,20 @@ struct profile: View {
             Text(vm.error)
             Text("Permission: \(vm.permissionStatus.description.uppercased())")
             Text("NAME: \(vm.userName)")
+            VStack(spacing: 40){
+                
+                Button("Request notification permissions") {
+                    notify.requestNotificationPermission()
+                }
+                
+                Button("Subscribe to notification") {
+                    notify.subscribeRoNotification()
+                }
+                
+                Button("Unsubscribe to notification") {
+                    notify.subscribeRoNotification()
+                }
+            }
         }
         .padding()
     }
