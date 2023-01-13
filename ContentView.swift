@@ -10,22 +10,22 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @StateObject private var vm = ExpenseUserViewModel()
+    @StateObject private var vmProfile = ProfileViewModel()
 
     
     var body: some View {
         ZStack{
-            if vm.permissionStatus == true {
-                ExpenseList()
-            } else {
+//            if vmProfile.permissionStatus == true {
+//                ExpenseList()
+//            } else {
                 profile()
-            }
+//            }
             
            
             VStack{
                 Spacer()
                 
-                Text("Status :  \(vm.permissionStatus.description.uppercased())")
+                Text("Status :  \(vmProfile.permissionStatus.description.uppercased())")
                     .font(.caption2)
                     .padding(.bottom, 12)
                     .foregroundColor(.gray)

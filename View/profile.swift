@@ -6,93 +6,106 @@
 //
 
 import SwiftUI
-import CloudKit
-// MARK: - ExpanseUserViewModel
-class ExpenseUserViewModel: ObservableObject {
+import Combine
+// MARK: - ProfileViewModel
+class ProfileViewModel: ObservableObject {
     
     @Published var permissionStatus: Bool = false
     @Published var isSignIntoiCloud: Bool = false
     @Published var error: String = ""
     @Published var userName: String = ""
+    var cancellables = Set<AnyCancellable>()
     
     init(){
         getCloudStatus()
         requestPermission()
-        fetchiCloudUserRecordID()
+        getCurrentUserName()
     }
-    
+    // MARK: - getCloudStatus
     private func getCloudStatus() {
-        CloudKitUtility.getiCloudStatus { [weak self] completion in
-            DispatchQueue.main.sync {
+        CloudKitUtility.getiCloudStatus()
+        // MARK: - withCombine
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] completion in
                 switch completion {
-                case .success(let success):
-                    self?.isSignIntoiCloud = success
+                case .finished:
+                    break
                 case .failure(let error):
                     self?.error = error.localizedDescription
                 }
+            } receiveValue: { [weak self] success in
+                self?.isSignIntoiCloud = success
             }
-        }
+            .store(in: &cancellables)
+        // MARK: - withCombine
     }
     
+    // MARK: - requestPermission
     func requestPermission() {
-        CKContainer.default().requestApplicationPermission([.userDiscoverability]) { [weak self] returnedStatus, returnedError in
-            DispatchQueue.main.async {
-                if returnedStatus == .granted {
-                    self?.permissionStatus = true
-                }
+        CloudKitUtility.requestApplicationPermission()
+        // MARK: - withCombine
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                
+            } receiveValue: { [weak self] success in
+                self?.permissionStatus = success
             }
-        }
-            
+            .store(in: &cancellables)
+        // MARK: - withCombine
+    }
+    
+    // MARK: - getUserNameOnCloudKit
+    func getCurrentUserName() {
+        CloudKitUtility.discoverUserIdentity()
+        // MARK: - withCombine
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                
+            } receiveValue: { [weak self] returnedName in
+                self?.userName = returnedName
+            }
+            .store(in: &cancellables)
+        // MARK: - withCombine
         
     }
     
-    func fetchiCloudUserRecordID() {
-        CKContainer.default().fetchUserRecordID { [weak self] returnedID, returnedError in
-            if let id = returnedID {
-                self?.discoveriCloudUser(id: id)
-            }
-        }
-    }
-    
-    func discoveriCloudUser(id: CKRecord.ID) {
-        CKContainer.default().discoverUserIdentity(withUserRecordID: id) { [weak self] returnedIdentity, returnError in
-            DispatchQueue.main.async {
-                if let name = returnedIdentity?.nameComponents?.givenName {
-                    self?.userName = name
-                }
-            }
-        }
-    }
-    
-    
 }
-// MARK: - ExpanseUserViewModel
+
 
 struct profile: View {
-    @StateObject private var vm = ExpenseUserViewModel()
-    @StateObject private var notify = CloudKitPushNotificationViewModel()
+    @StateObject private var vmProfile = ProfileViewModel()
+    @StateObject private var vmNotify = CloudKitPushNotificationViewModel()
     
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("IS SIGNED IN: \(vm.isSignIntoiCloud.description.uppercased())")
-            Text(vm.error)
-            Text("Permission: \(vm.permissionStatus.description.uppercased())")
-            Text("NAME: \(vm.userName)")
+            HStack{
+                Text("Cloud☁️")
+                    .foregroundColor(Color.accentColor)
+                if vmProfile.isSignIntoiCloud {
+                    Image(systemName: "checkmark.circle")
+                        .foregroundColor(.green)
+                } else {
+                    Image(systemName: "xmark.circle")
+                        .foregroundColor(.red)
+                }
+                Text(vmProfile.error)
+            }
+                Text("Permission: \(vmProfile.permissionStatus.description.uppercased())")
+                Text("NAME: \(vmProfile.userName)")
+            
+            
             VStack(spacing: 40){
                 
                 Button("Request notification permissions") {
-                    notify.requestNotificationPermission()
+                    vmNotify.requestNotificationPermission()
                 }
                 
                 Button("Subscribe to notification") {
-                    notify.subscribeRoNotification()
+                    vmNotify.subscribeRoNotification()
                 }
                 
                 Button("Unsubscribe to notification") {
-                    notify.subscribeRoNotification()
+                    vmNotify.subscribeRoNotification()
                 }
             }
         }
