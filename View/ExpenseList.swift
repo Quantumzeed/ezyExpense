@@ -7,15 +7,26 @@
 
 import SwiftUI
 import CloudKit
+import Combine
 
+// MARK: - Protocal
+protocol CloudKitableProtocal {
+    init?(record: CKRecord)
+}
 
 // MARK: - ExpenseView
-struct ExpenseModel: Hashable {
+struct ExpenseModel: Hashable, CloudKitableProtocal {
     let name: String
     let imageURL: URL?
     let record: CKRecord
     
-    
+    init?(record: CKRecord) {
+        guard let name = record["name"] as? String else { return nil }
+        self.name = name
+        let imageAsset = record["image"] as? CKAsset
+        self.imageURL = imageAsset?.fileURL
+        self.record = record
+    }
 }
 // MARK: - ExpenseView
 
@@ -25,6 +36,7 @@ class ExpenseViewModel: ObservableObject {
      
     @Published var text: String = ""
     @Published var expense: [ExpenseModel] = []
+    var cancellables = Set<AnyCancellable>()
     
     init(){
         fetchItem()
@@ -70,47 +82,19 @@ class ExpenseViewModel: ObservableObject {
     }
     
     func fetchItem() {
-        
         let predicate = NSPredicate(value: true)
-        
-//        let predicate = NSPredicate(format: "name = %@", argumentArray: ["Coconut"])
-        let quary = CKQuery(recordType:"Expense", predicate: predicate)
-        quary.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        let quaryOperation = CKQueryOperation(query: quary)
-//        quaryOperation.resultsLimit = 2 //100
-        
-        var returnedItems: [ExpenseModel] = []
-        
-        quaryOperation.recordMatchedBlock = { (returnedRecordID, returnResult) in
-            switch returnResult {
-            case .success(let record):
-                guard let name = record["name"] as? String else { return }
-                let imageAsset = record["image"] as? CKAsset
-                let imageURL = imageAsset?.fileURL
-//                print(record)
-                returnedItems.append(ExpenseModel(name: name, imageURL: imageURL, record: record))
-            case .failure(let error):
-                print("Error recordMatchedBlock \(error)")
+        let recordType = "Expense"
+        CloudKitUtility.fetch(predicate: predicate, recordType: recordType)
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
                 
-            }
-            
-            
-        }
-        
-        quaryOperation.queryResultBlock = { [weak self] returnedResult in
-            print("RETURNED quaryResultBlock \(returnedResult)")
-            DispatchQueue.main.async {
+            } receiveValue: { [weak self] returnedItems in
                 self?.expense = returnedItems
             }
-            
-        }
-        
-        addOperation(operation: quaryOperation)
+            .store(in: &cancellables)
     }
     
-    func addOperation(operation: CKDatabaseOperation) {
-        CKContainer.default().publicCloudDatabase.add(operation)
-    }
+
     
     func updateItem(expense: ExpenseModel) {
         let record = expense.record

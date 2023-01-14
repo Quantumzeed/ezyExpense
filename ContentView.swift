@@ -15,11 +15,11 @@ struct ContentView: View {
     
     var body: some View {
         ZStack{
-//            if vmProfile.permissionStatus == true {
-//                ExpenseList()
-//            } else {
+            if vmProfile.permissionStatus == true {
+                ExpenseList()
+            } else {
                 profile()
-//            }
+            }
             
            
             VStack{

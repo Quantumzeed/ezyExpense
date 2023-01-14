@@ -70,7 +70,7 @@ class CloudKitUtility {
    
 }
 
-// MARK: - USER FUNCTIONS
+// MARK: - USER PROFILE FUNCTIONS
 extension CloudKitUtility {
     
     static private func getiCloudStatus(completion: @escaping (Result<Bool, Error>) -> ()) {
@@ -165,6 +165,87 @@ extension CloudKitUtility {
 // MARK: - CRUD FUNCTIONS
 extension CloudKitUtility {
     
+    static func fetch<T:CloudKitableProtocal>(
+        predicate: NSPredicate,
+        recordType: CKRecord.RecordType,
+        sortDescriptors: [NSSortDescriptor]? = nil,
+        resultsLimit: Int? = nil
+    ) -> Future<[T], Error>{
+        Future { promise in
+            CloudKitUtility.fetch(predicate: predicate, recordType: recordType, sortDescriptors: sortDescriptors, resultsLimit: resultsLimit) { (items: [T]) in
+                promise(.success(items))
+            }
+        }
+    }
     
+    static private func fetch<T:CloudKitableProtocal>(
+        predicate: NSPredicate,
+        recordType: CKRecord.RecordType,
+        sortDescriptors: [NSSortDescriptor]? = nil,
+        resultsLimit: Int? = nil,
+        completion: @escaping (_ items: [T]) -> ()
+    ) {
+        // MARK: - create Operation
+        let operation = createOperation(predicate: predicate, recordType: recordType, sortDescriptors: sortDescriptors, resultsLimit: resultsLimit)
+        
+        // MARK: - Get Item in query
+        var returnedItems: [T] = []
+        addRecordMatchedBlock(operation: operation) { item in
+            returnedItems.append(item)
+        }
+        // MARK: - Quary completion
+        addQuaryResultBlock(operation: operation) { finished in
+            completion(returnedItems)
+        }
+        
+        
+        // MARK: - Excute operation
+        add(operation: operation)
+    }
+    
+    static private func createOperation(
+        predicate: NSPredicate,
+        recordType: CKRecord.RecordType,
+        sortDescriptors: [NSSortDescriptor]? = nil,
+        resultsLimit: Int? = nil
+    ) -> CKQueryOperation {
+        let quary = CKQuery(recordType: recordType, predicate: predicate)
+        quary.sortDescriptors = sortDescriptors
+        let quaryOperation = CKQueryOperation(query: quary)
+        if let limit = resultsLimit {
+            quaryOperation.resultsLimit = limit
+        }
+        return quaryOperation
+    }
+    
+    static private func addRecordMatchedBlock<T:CloudKitableProtocal>(operation: CKQueryOperation, completion: @escaping (_ item: T) -> ()) {
+        operation.recordMatchedBlock = { (returnedRecordID, returnResult) in
+            switch returnResult {
+            case .success(let record):
+                guard let item = T(record: record) else { return }
+                completion(item)
+            case .failure:
+                break
+            }
+            
+            
+        }
+        
+    }
+    
+    static private func addQuaryResultBlock(operation: CKQueryOperation, completion: @escaping (_ finished: Bool) -> ()) {
+        
+        operation.queryResultBlock = { returnedResult in
+            DispatchQueue.main.async {
+                completion(true)
+            }
+            
+        }
+        
+    }
+    
+    static private func add(operation: CKDatabaseOperation) {
+        CKContainer.default().publicCloudDatabase.add(operation)
+    }
     
 }
