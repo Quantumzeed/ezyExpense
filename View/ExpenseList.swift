@@ -9,23 +9,50 @@ import SwiftUI
 import CloudKit
 import Combine
 
-// MARK: - Protocal
-protocol CloudKitableProtocal {
-    init?(record: CKRecord)
+
+struct CloudKitExpenseNames {
+    // MARK: - recordType Name
+    static let nameRecordType = "Expense"
+    // MARK: - feild Name
+    static let name = "name"
+    static let image = "image"
+    static let count = "count"
 }
 
 // MARK: - ExpenseView
 struct ExpenseModel: Hashable, CloudKitableProtocal {
     let name: String
     let imageURL: URL?
+    let count: Int
     let record: CKRecord
     
     init?(record: CKRecord) {
-        guard let name = record["name"] as? String else { return nil }
+        guard let name = record[CloudKitExpenseNames.name] as? String else { return nil }
         self.name = name
-        let imageAsset = record["image"] as? CKAsset
+        let imageAsset = record[CloudKitExpenseNames.image] as? CKAsset
         self.imageURL = imageAsset?.fileURL
+        let count = record[CloudKitExpenseNames.count] as? Int
+        self.count = count ?? 0
         self.record = record
+    }
+    
+    init?(name: String, imageURL: URL?, count:Int?) {
+        let record = CKRecord(recordType: CloudKitExpenseNames.nameRecordType)
+        record[CloudKitExpenseNames.name] = name
+        if let url = imageURL {
+            let asset = CKAsset(fileURL: url)
+            record[CloudKitExpenseNames.image] = asset
+        }
+        if let count = count {
+            record[CloudKitExpenseNames.count] = count
+        }
+        self.init(record: record)
+    }
+    
+    func update(newName:String) -> ExpenseModel? {
+        let record = record
+        record[CloudKitExpenseNames.name] = newName
+        return ExpenseModel(record: record)
     }
 }
 // MARK: - ExpenseView
@@ -48,36 +75,21 @@ class ExpenseViewModel: ObservableObject {
     }
     
     private func addItem(name: String) {
-        let newExpense =  CKRecord(recordType: "Expense")
-        newExpense["name"] = name
-        
         guard
             let image = UIImage(named: "ExpenseTestJPEG"),
             let url = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("ExpenseTestJPEG.jpeg"),
             let data = image.jpegData(compressionQuality: 1.0) else { return }
         do {
             try data.write(to: url)
-            let asset = CKAsset(fileURL: url)
-            newExpense["image"] = asset
-            saveItem(record: newExpense)
+            guard let newExpense = ExpenseModel(name: name, imageURL: url, count: 5) else { return }
+            CloudKitUtility.add(item: newExpense) { [weak self ] result in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    self?.text = ""
+                    self?.fetchItem()
+                }
+            }
         } catch let error {
             print(error)
-        }
-        
-//        saveItem(record: newExpense)
-    }
-    
-    private func saveItem(record: CKRecord) {
-        CKContainer.default().publicCloudDatabase.save(record) { [weak self] returnedRecord, returnedError in
-//            print("Record: \(returnedRecord)")
-//            print("Error: \(returnedError)")
-//
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                self?.text = ""
-                // MARK: - better is update array [expense]
-                self?.fetchItem()
-                // MARK: - better is update array [expense]
-            }
         }
     }
     
@@ -94,22 +106,27 @@ class ExpenseViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-
-    
     func updateItem(expense: ExpenseModel) {
-        let record = expense.record
-        record["name"] = "NEW NAME!!!!!"
-        saveItem(record: record)
+        guard let newExpemse = expense.update(newName: "Test Update !!") else { return }
+        CloudKitUtility.update(item: newExpemse) { [weak self]result in
+            print("Update Complete")
+            self?.fetchItem()
+        }
     }
     
     func deleteItem(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
         let expenses = expense[index]
-        let record = expenses.record
         
-        CKContainer.default().publicCloudDatabase.delete(withRecordID: record.recordID) { [weak self]  returnedRecordID, returnedError in
-            self?.expense.remove(at: index)
-        }
+        CloudKitUtility.delete(item: expenses)
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                
+            } receiveValue: { [weak self] success in
+                print("Delete id \(success)")
+                self?.expense.remove(at: index)
+            }
+            .store(in: &cancellables)
     }
     
     

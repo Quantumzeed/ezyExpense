@@ -9,8 +9,29 @@ import Foundation
 import CloudKit
 import Combine
 
+// MARK: - Protocal
+protocol CloudKitableProtocal {
+    init?(record: CKRecord)
+    var record: CKRecord { get }
+}
 
-// MARK: - How to Use USER FUNCTION
+class CloudKitUtility {
+    
+    // MARK: - CloudKitError
+    enum CloudKitError: String , LocalizedError {
+        case iCloudAccountNotFound
+        case iCloudAccountNotDetermined
+        case iCloudAccountRestricted
+        case iCloudAccountUnknow
+        case iCloudApplicationPermissionNotGranted
+        case iCloudCouldNotFetchUserRecordID
+        case iCloudCouldNotDiscoverUser
+    }// MARK: - CloudKitError
+   
+}
+
+
+// MARK: - How to Use USER PROFILE FUNCTION
 // MARK: - getCloudStatus
 /*func getCloudStatus() {
     CloudKitUtility.getiCloudStatus()
@@ -50,25 +71,6 @@ import Combine
         .store(in: &cancellables)
 }*/
 
-
-
-
-
-
-class CloudKitUtility {
-    
-    // MARK: - CloudKitError
-    enum CloudKitError: String , LocalizedError {
-        case iCloudAccountNotFound
-        case iCloudAccountNotDetermined
-        case iCloudAccountRestricted
-        case iCloudAccountUnknow
-        case iCloudApplicationPermissionNotGranted
-        case iCloudCouldNotFetchUserRecordID
-        case iCloudCouldNotDiscoverUser
-    }// MARK: - CloudKitError
-   
-}
 
 // MARK: - USER PROFILE FUNCTIONS
 extension CloudKitUtility {
@@ -162,6 +164,12 @@ extension CloudKitUtility {
     
 }
 
+
+
+// MARK: - How to Use CRUD FUNCTION
+
+
+
 // MARK: - CRUD FUNCTIONS
 extension CloudKitUtility {
     
@@ -248,4 +256,47 @@ extension CloudKitUtility {
         CKContainer.default().publicCloudDatabase.add(operation)
     }
     
+    
+    static func add<T:CloudKitableProtocal>(item: T, completion: @escaping (Result<Bool, Error>) -> ()) {
+        // MARK: - Get Record
+        let record = item.record
+        
+        // MARK: - Save to CloudKit
+        save(record: record, completion: completion)
+    }
+    
+    static func update<T:CloudKitableProtocal>(item: T, completion: @escaping (Result<Bool, Error>) -> ()) {
+        add(item: item, completion: completion)
+    }
+        
+    
+    static func save(record: CKRecord, completion: @escaping (Result<Bool, Error>) -> ()) {
+        CKContainer.default().publicCloudDatabase.save(record) { returnedRecord, returnedError in
+            if let error = returnedError {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
+    
+    static func delete<T:CloudKitableProtocal>(item: T) -> Future<Bool, Error> {
+        Future { promise in
+            CloudKitUtility.delete(item: item, completion: promise)
+        }
+    }
+    
+    static private func delete<T:CloudKitableProtocal>(item: T, completion: @escaping (Result<Bool, Error>) -> ()) {
+        CloudKitUtility.delete(record: item.record, completion: completion)
+    }
+    
+    static private func delete(record: CKRecord, completion: @escaping (Result<Bool, Error>) -> ()) {
+        CKContainer.default().publicCloudDatabase.delete(withRecordID: record.recordID) { returnedRecordID, returnedError in
+            if let error = returnedError {
+                completion(.failure(error))
+            } else {
+                completion(.success(true))
+            }
+        }
+    }
 }
