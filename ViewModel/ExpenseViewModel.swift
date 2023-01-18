@@ -11,8 +11,40 @@ import SwiftUI
 
 class ExpenseViewModel: ObservableObject{
     // MARK: - Properties
+    @Published var startDate: Date = Date()
+    @Published var endDate: Date = Date()
+    @Published var currentMonthStartDate: Date = Date()
     
-    @Published var expense: [Expense] = sample_expenses
+    
+    init(){
+        // MARK: - Fetching Current Month Starting Date
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: Date())
+        
+        startDate = calendar.date(from: components)!
+        currentMonthStartDate = calendar.date(from: components)!
+    }
+    
+    // MARK: - This is a Sample Data of Month May
+    // MARK: - You can Custumize thid Even more with Your Data (Core Data)
+    @Published var expenses: [Expense] = sample_expenses
+    
+    // MARK: - Fetching Current Month Date String
+    func currentMonthDateString()->String{
+        return currentMonthStartDate.formatted(date: .abbreviated, time: .omitted) + " - " + Date().formatted(date: .abbreviated, time: .omitted)
+    }
+    
+    func convertExpensesToCurrency(expense: [Expense], type:ExpenseType = .all)->String{
+        var value: Double = 0
+        value = expense.reduce(0, { partialResult, expense in
+            return partialResult + (expense.type == .all ? (expense.type == . income ? expense.amount : -expense.amount) : (expense.type == type ? expense.amount : 0))
+        })
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        
+        return formatter.string(from: .init(value: value)) ?? "฿0.00"
+    }
 }
 
 
