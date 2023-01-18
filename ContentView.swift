@@ -10,32 +10,33 @@ import SwiftUI
 
 struct ContentView: View {
     
-    @StateObject private var vmProfile = ProfileViewModel()
+//    @StateObject private var vmProfile = ProfileViewModel()
 
     
     var body: some View {
-        ZStack{
-            if vmProfile.permissionStatus == true {
-                ExpenseList()
-            } else {
-                profile()
-            }
-            
-           
-            VStack{
-                Spacer()
-                
-                Text("Status :  \(vmProfile.permissionStatus.description.uppercased())")
-                    .font(.caption2)
-                    .padding(.bottom, 12)
-                    .foregroundColor(.gray)
-            }
-            .ignoresSafeArea(.all)
-            
+//        ZStack{
+//            if vmProfile.permissionStatus == true {
+//                ExpenseList()
+//            } else {
+//                profile()
+//            }
+//
+//
+//            VStack{
+//                Spacer()
+//
+//                Text("Status :  \(vmProfile.permissionStatus.description.uppercased())")
+//                    .font(.caption2)
+//                    .padding(.bottom, 12)
+//                    .foregroundColor(.gray)
+//            }
+//            .ignoresSafeArea(.all)
+//
+//        }
+        NavigationView {
+            Home()
+                .navigationBarHidden(true)
         }
-        
-//        Home()
-//            .navigationBarHidden(true)
     }
 }
 
