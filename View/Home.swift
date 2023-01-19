@@ -22,8 +22,10 @@ struct Home: View {
                             .font(.title2.bold())
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Button {
                     
+                    NavigationLink {
+                        FilteredDetailView()
+                            .environmentObject(expenseViewModel)
                     } label: {
                         Image(systemName: "hexagon.fill")
                             .foregroundColor(.gray)
@@ -36,6 +38,21 @@ struct Home: View {
                             .background(Color.white,in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                             .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
                     }
+
+//                    Button {
+//
+//                    } label: {
+//                        Image(systemName: "hexagon.fill")
+//                            .foregroundColor(.gray)
+//                            .overlay(content: {
+//                                Circle()
+//                                    .stroke(.white, lineWidth: 2)
+//                                    .padding(7)
+//                            })
+//                            .frame(width: 40, height: 40)
+//                            .background(Color.white,in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+//                            .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+//                    }
                 }
                 ExpenseCardView()
                 TransactionsView()
@@ -50,12 +67,17 @@ struct Home: View {
     // MARK: - Transactions
     @ViewBuilder
     func TransactionsView()->some View{
-        VStack{
+        VStack(spacing: 15){
             Text("Transactions")
                 .font(.title2.bold())
                 .opacity(0.7)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
+            ForEach(expenseViewModel.expenses) { expense in
+                // MARK: - Transaction Card View
+                TransactionCardView(expense: expense)
+                    .environmentObject(expenseViewModel)
+            }
             
         }
     }
