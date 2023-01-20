@@ -15,6 +15,12 @@ class ExpenseViewModel: ObservableObject{
     @Published var endDate: Date = Date()
     @Published var currentMonthStartDate: Date = Date()
     
+    // MARK: - Expense / Income Tab
+    @Published var tabName: ExpenseType = .expense
+    
+    // MARK: - Filter View
+    @Published var showFilterView: Bool = false
+    
     
     init(){
         // MARK: - Fetching Current Month Starting Date
@@ -42,6 +48,12 @@ class ExpenseViewModel: ObservableObject{
         return convertNumbertoPrice(value: value)
     }
     
+    // MARK: - Converting Selected Dates To String
+    func convertDatetoString()->String{
+        return startDate.formatted(date: .abbreviated, time: .omitted) + " - " + endDate.formatted(date: .abbreviated, time: .omitted)
+    }
+    
+    // MARK: - Converting Number to Price
     func convertNumbertoPrice(value: Double)->String{
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
