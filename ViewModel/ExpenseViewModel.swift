@@ -21,6 +21,14 @@ class ExpenseViewModel: ObservableObject{
     // MARK: - Filter View
     @Published var showFilterView: Bool = false
     
+    // MARK: - New Expense Properties
+    @Published var addNewExpense: Bool = false
+    @Published var amount: String = ""
+    @Published var type: ExpenseType = .all
+    @Published var date: Date = Date()
+    @Published var remark: String = ""
+    
+    
     
     init(){
         // MARK: - Fetching Current Month Starting Date
@@ -61,6 +69,30 @@ class ExpenseViewModel: ObservableObject{
         return formatter.string(from: .init(value: value)) ?? "฿0.00"
     }
     
+    // MARK: - Clearing All Data
+    func clearData(){
+        date = Date()
+        type = .all
+        remark = ""
+        amount = ""
+    }
+    
+    // MARK: - Save Data
+    func saveData(env:EnvironmentValues){
+        // MARK: - Do Actions Here
+        print("Save")
+        
+        // MARK: - This is For UI Demo
+        // MARK: - replace with core data Actions
+        let amountInDouble = (amount as NSString).doubleValue
+        let colors = ["Yellow","Red","Purple","Green"]
+        let expense = Expense(remark: remark, amount: amountInDouble, date: date, type: type, color: colors.randomElement() ?? "Yellow")
+        withAnimation {expenses.append(expense)}
+        expenses = expenses.sorted(by: { first, scnd in
+            return scnd.date > first.date
+        })
+        env.dismiss()
+    }
 }
 
 
