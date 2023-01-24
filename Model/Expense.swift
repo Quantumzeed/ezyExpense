@@ -8,14 +8,77 @@
 import Foundation
 import CloudKit
 
+// MARK: - recordType and Colume
+struct ExpenseNames {
+    // MARK: - recordType Name
+    static let nameRecordType = "MoneyExpense"
+    // MARK: - feild Name
+    static let remark = "remark"
+    static let amount = "amount"
+    static let date = "date"
+    static let type = "type"
+    static let color = "color"
+}
+
 // MARK: - Expense Model and Sample Data
-struct Expense: Identifiable, Hashable {
+struct Expense: Identifiable, Hashable, CloudKitableProtocal {
     var id = UUID().uuidString
     var remark: String
     var amount: Double
     var date: Date
     var type: ExpenseType
     var color: String
+    let record: CKRecord
+    
+    init?(record: CKRecord){
+        guard let remark = record[ExpenseNames.remark] as? String else { return nil }
+        self.remark = remark
+        let amount = record[ExpenseNames.amount] as? Double
+        self.amount = amount ?? 0
+        let date = record[ExpenseNames.date] as? Date
+        self.date = date ?? Date()
+        let type = record[ExpenseNames.type] as? String
+        if type == "income" {
+            self.type = ExpenseType.income
+        } else {
+            self.type = ExpenseType.expense
+        }
+        let color = record[ExpenseNames.color] as? String
+        self.color = color ?? ""
+        self.record = record
+    }
+    
+    init?(remark: String, amount:Double?, date:Date?, type:ExpenseType?, color:String?){
+        let record = CKRecord(recordType: ExpenseNames.nameRecordType)
+        record[ExpenseNames.remark] = remark
+        if let amount = amount {
+            record[ExpenseNames.amount] = amount
+        }
+        if let date = date {
+            record[ExpenseNames.date] = date
+        }
+        if let type = type {
+            record[ExpenseNames.type] = (type == ExpenseType.expense ? "expense" : "income")
+        }
+        if let color = color {
+            record[ExpenseNames.color] = color
+        }
+        self.init(record: record)
+    }
+    
+    func update(newRemark: String, newAmount:Double?, newDate:Date?, newType:ExpenseType?, newColor:String?) -> Expense?{
+        let record = record
+//        CKRecord(recordType: ExpenseNames.nameRecordType)
+        record[ExpenseNames.remark] = newRemark
+        record[ExpenseNames.amount] = newAmount
+        record[ExpenseNames.date] = newDate
+        record[ExpenseNames.type] = (newType == ExpenseType.expense ? "expense" : "income")
+        record[ExpenseNames.color] = newColor
+        return Expense(record: record)
+    }
+    
+    
+    
 }
 enum ExpenseType: String {
     case income = "income"
@@ -23,17 +86,20 @@ enum ExpenseType: String {
     case all = "ALL"
 }
 
+
+
+
 var sample_expenses: [Expense] = [
-    Expense(remark: "Magic Keyboard",   amount: 99, date: Date (timeIntervalSince1970: 1652987245), type: .expense, color: "Yellow"),
-    Expense(remark: "Food",             amount: 19, date: Date(timeIntervalSince1970: 1652814445),  type: .expense, color: "Red"),
-    Expense(remark: "Magic Trackpad",   amount: 99, date: Date (timeIntervalSince1970: 1652382445), type: .expense, color: "Purple"),
-    Expense(remark: "Uber Cab",         amount: 20, date: Date(timeIntervalSince1970: 1652296045),  type: .expense, color: "Green"),
-    Expense(remark: "Amazon Purchase",  amount: 299, date:Date(timeIntervalSince1970: 1652209645) , type: .expense, color: "Yellow"),
-    Expense(remark: "Stocks",           amount: 399, date: Date (timeIntervalSince1970: 1652036845), type: .expense, color: "Purple"),
-    Expense(remark: "In App Purchase",  amount: 5.99,date:Date(timeIntervalSince1970:1651864045),   type: .expense, color: "Red"),
-    Expense(remark: "Movie Ticket",     amount: 99, date: Date (timeIntervalSince1970: 1651691245), type: .expense, color: "Yellow"),
-    Expense(remark: "Apple Music",      amount: 25, date: Date (timeIntervalSince1970: 1651518445), type: .expense, color: "Green"),
-    Expense(remark: "Snacks",           amount: 49, date: Date (timeIntervalSince1970: 1651432045), type: .expense, color: "Purple"),
+//    Expense(remark: "Magic Keyboard",   amount: 99, date: Date (timeIntervalSince1970: 1652987245), type: .expense, color: "Yellow"),
+//    Expense(remark: "Food",             amount: 19, date: Date(timeIntervalSince1970: 1652814445),  type: .expense, color: "Red"),
+//    Expense(remark: "Magic Trackpad",   amount: 99, date: Date (timeIntervalSince1970: 1652382445), type: .expense, color: "Purple"),
+//    Expense(remark: "Uber Cab",         amount: 20, date: Date(timeIntervalSince1970: 1652296045),  type: .expense, color: "Green"),
+//    Expense(remark: "Amazon Purchase",  amount: 299, date:Date(timeIntervalSince1970: 1652209645) , type: .income, color: "Yellow"),
+//    Expense(remark: "Stocks",           amount: 399, date: Date (timeIntervalSince1970: 1652036845), type: .expense, color: "Purple"),
+//    Expense(remark: "In App Purchase",  amount: 5.99,date:Date(timeIntervalSince1970:1651864045),   type: .expense, color: "Red"),
+//    Expense(remark: "Movie Ticket",     amount: 99, date: Date (timeIntervalSince1970: 1651691245), type: .expense, color: "Yellow"),
+//    Expense(remark: "Apple Music",      amount: 25, date: Date (timeIntervalSince1970: 1651518445), type: .expense, color: "Green"),
+//    Expense(remark: "Snacks",           amount: 49, date: Date (timeIntervalSince1970: 1651432045), type: .expense, color: "Purple"),
 ]
 
 

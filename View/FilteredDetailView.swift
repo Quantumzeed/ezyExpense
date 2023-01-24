@@ -55,7 +55,7 @@ struct FilteredDetailView: View {
                     Text(expenseViewModel.convertDatetoString())
                         .opacity(0.7)
                     
-                    Text(expenseViewModel.convertExpensesToCurrency(expense: expenseViewModel.expenses, type: expenseViewModel.tabName))
+                    Text(expenseViewModel.convertExpensesToCurrencyWithFilter(expense: expenseViewModel.expenses, type: expenseViewModel.tabName))
                         .font(.title.bold())
                         .opacity(0.9)
                         .animation(.none, value: expenseViewModel.tabName)
@@ -68,9 +68,7 @@ struct FilteredDetailView: View {
                 }
                 .padding(.vertical,20)
                 
-                ForEach(expenseViewModel.expenses.filter{
-                    return $0.type == expenseViewModel.tabName
-                }) { expense in
+                ForEach(expenseViewModel.expenses.filter{ return $0.type == expenseViewModel.tabName && $0.date > expenseViewModel.startDate && $0.date < expenseViewModel.endDate }) { expense in
                     TransactionCardView(expense: expense)
                         .environmentObject(expenseViewModel)
                 }

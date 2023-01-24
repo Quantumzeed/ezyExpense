@@ -56,6 +56,15 @@ class ExpenseViewModel: ObservableObject{
         return convertNumbertoPrice(value: value)
     }
     
+    func convertExpensesToCurrencyWithFilter(expense: [Expense], type:ExpenseType = .all)->String{
+        var value: Double = 0
+        value = expense.reduce(0, { partialResult, expense in
+            
+            return partialResult + (expense.type == .all ? (expense.type == .income && expense.date > startDate && expense.date < endDate ? expense.amount : -expense.amount) : (expense.type == type && expense.date > startDate && expense.date < endDate ? expense.amount : 0) )
+        })
+        return convertNumbertoPrice(value: value)
+    }
+    
     // MARK: - Converting Selected Dates To String
     func convertDatetoString()->String{
         return startDate.formatted(date: .abbreviated, time: .omitted) + " - " + endDate.formatted(date: .abbreviated, time: .omitted)
@@ -87,7 +96,7 @@ class ExpenseViewModel: ObservableObject{
         let amountInDouble = (amount as NSString).doubleValue
         let colors = ["Yellow","Red","Purple","Green"]
         let expense = Expense(remark: remark, amount: amountInDouble, date: date, type: type, color: colors.randomElement() ?? "Yellow")
-        withAnimation {expenses.append(expense)}
+        withAnimation {expenses.append(expense!)}
         expenses = expenses.sorted(by: { first, scnd in
             return scnd.date > first.date
         })

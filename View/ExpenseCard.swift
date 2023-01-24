@@ -31,6 +31,7 @@ struct ExpenseCard: View {
                         .font(.system(size: 35, weight: .bold))
                         .lineLimit(1)
                         .padding(.bottom)
+                    
                 }
                 .offset(y:-10)
                 
