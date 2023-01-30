@@ -83,7 +83,7 @@ struct ExpenseCard: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
         .frame(height: 220)
-        .padding(.top)
+//        .padding(.top)
     }
 }
 

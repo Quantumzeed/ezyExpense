@@ -23,6 +23,8 @@ struct NewExpense: View {
                 
                 // MARK: - Custom TextField
                 // MARK: - For Currency Symbol
+                
+                
                 if let symbol = expenseViewModel.convertNumbertoPrice(value: 0)
                     .first{
                     TextField("0", text: $expenseViewModel.amount)
@@ -44,7 +46,7 @@ struct NewExpense: View {
                         .frame(maxWidth: .infinity)
                         .background{
                             Capsule()
-                                .fill(.white)
+                                .fill(Color(.secondarySystemFill))
                         }
                         .padding(.horizontal,20)
                         .padding(.top)
@@ -56,13 +58,13 @@ struct NewExpense: View {
                 } icon: {
                     Image(systemName: "list.bullet.rectangle.portrait.fill")
                         .font(.title3)
-                        .foregroundColor(Color("Gray"))
+//                        .foregroundColor(Color("Gray"))
                 }
                 .padding(.vertical,20)
                 .padding(.horizontal,15)
                 .background{
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white)
+                        .fill(Color(.secondarySystemFill))
                 }
                 .padding(.top,25)
                 
@@ -72,13 +74,13 @@ struct NewExpense: View {
                 } icon: {
                     Image(systemName: "arrow.up.arrow.down")
                         .font(.title3)
-                        .foregroundColor(Color("Gray"))
+//                        .foregroundColor(Color("Gray"))
                 }
                 .padding(.vertical,20)
                 .padding(.horizontal,15)
                 .background{
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white)
+                        .fill(Color(.secondarySystemFill))
                 }
                 .padding(.top,5)
                 
@@ -91,22 +93,60 @@ struct NewExpense: View {
                 } icon: {
                     Image(systemName: "calendar")
                         .font(.title3)
-                        .foregroundColor(Color("Gray"))
+//                        .foregroundColor(Color("Gray"))
                 }
                 .padding(.vertical,20)
                 .padding(.horizontal,15)
                 .background{
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(.white)
+                        .fill(Color(.secondarySystemFill))
                 }
                 .padding(.top,5)
-
+                
+                Label {
+                    TextField("Tag", text: $expenseViewModel.tag)
+                } icon: {
+                    Image(systemName: "tag")
+                        .font(.title3)
+//                        .foregroundColor(Color("Gray"))
+                }
+                .padding(.vertical,20)
+                .padding(.horizontal,15)
+                .background{
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(expenseViewModel.color != "" ? Color(expenseViewModel.color) : Color(.secondarySystemFill))
+                    
+                }
+                .padding(.top,5)
+                HStack{
+                    ForEach(expenseViewModel.expenses) { item in
+                        if item.tag != "" {
+                            Button {
+                                expenseViewModel.tag = item.tag
+                                expenseViewModel.color = item.color
+                            } label: {
+                                Text("\(item.tag)")
+                                    .foregroundColor(.white)
+                                    .padding(8)
+                                    .background {
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                            .fill(Color(item.color))
+                                }
+                            }
+                        }
+                        
+                        
+                    }
+                }
+              
+                
             }
             .frame(maxHeight: .infinity, alignment: .center)
             
             // MARK: - Save Button
-            Button(action: {expenseViewModel.saveData(env: env)}){
-                Text("Save")
+            
+            Button(action: {expenseViewModel.showProgress = true;expenseViewModel.addButtonPressed(env: env)}){
+                Text(expenseViewModel.showProgress ? "Saving" : "Save")
                     .font(.title3)
                     .fontWeight(.semibold)
                     .padding(.vertical, 15)
@@ -123,28 +163,37 @@ struct NewExpense: View {
                     }
                     .foregroundColor(.white)
                     .padding(.bottom, 10)
+                    .overlay {
+                        if expenseViewModel.showProgress {
+                            ProgressView()
+                            .offset(x: -50, y: -5)
+                        }
+                    }
             }
+            .animation(.easeIn(duration: 2), value: expenseViewModel.showProgress)
             .disabled(expenseViewModel.remark == "" || expenseViewModel.type == .all || expenseViewModel.amount == "")
             .opacity(expenseViewModel.remark == "" || expenseViewModel.type == .all || expenseViewModel.amount == "" ? 0.6 : 1)
 
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background{
-            Color("BG")
-                .ignoresSafeArea()
-        }
+//        .background{
+//            Color("BG")
+//                .ignoresSafeArea()
+//        }
         .overlay(alignment: .topTrailing) {
             // MARK: - Close Button
-            Button {
-                env.dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.title2)
-                    .foregroundColor(.black)
-                    .opacity(0.7)
-            }
+                 Button {
+                     env.dismiss()
+                 } label: {
+                     Image(systemName: "xmark")
+                         .font(.title2)
+                         .foregroundColor(.black)
+                         .opacity(0.7)
+                 }
+
             .padding()
+           
         }
     }
     
@@ -155,7 +204,7 @@ struct NewExpense: View {
             ForEach([ExpenseType.income,ExpenseType.expense], id: \.self) { type in
                 ZStack{
                     RoundedRectangle(cornerRadius: 2)
-                        .stroke(.black,lineWidth: 2)
+                        .stroke(lineWidth: 2)
                         .opacity(0.25)
                         .frame(width: 20, height: 20)
                     

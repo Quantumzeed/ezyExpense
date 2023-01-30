@@ -21,27 +21,39 @@ class ExpenseViewModel: ObservableObject{
     // MARK: - Filter View
     @Published var showFilterView: Bool = false
     
+    // MARK: - Progress
+    @Published var showProgress: Bool = false
+    
     // MARK: - New Expense Properties
     @Published var addNewExpense: Bool = false
     @Published var amount: String = ""
     @Published var type: ExpenseType = .all
     @Published var date: Date = Date()
+    @Published var color: String = ""
     @Published var remark: String = ""
+    @Published var tag:String = ""
+    @Published var taged:[String] = []
     
+    // MARK: - This is a Sample Data of Month May
+    // MARK: - You can Custumize thid Even more with Your Data (Core Data)
+//    @Published var expenses: [Expense] = sample_expenses
+    @Published var expenses: [Expense] = []
     
+    var cancellables = Set<AnyCancellable>()
     
     init(){
+        fetchItem()
+        
         // MARK: - Fetching Current Month Starting Date
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month], from: Date())
         
         startDate = calendar.date(from: components)!
         currentMonthStartDate = calendar.date(from: components)!
+        
+        
     }
     
-    // MARK: - This is a Sample Data of Month May
-    // MARK: - You can Custumize thid Even more with Your Data (Core Data)
-    @Published var expenses: [Expense] = sample_expenses
     
     // MARK: - Fetching Current Month Date String
     func currentMonthDateString()->String{
@@ -87,21 +99,79 @@ class ExpenseViewModel: ObservableObject{
     }
     
     // MARK: - Save Data
-    func saveData(env:EnvironmentValues){
-        // MARK: - Do Actions Here
-        print("Save")
-        
-        // MARK: - This is For UI Demo
-        // MARK: - replace with core data Actions
+//    func saveData(env:EnvironmentValues){
+//        // MARK: - Do Actions Here
+//        print("Save")
+//
+//        // MARK: - This is For UI Demo
+//        // MARK: - replace with core data Actions
+//        let amountInDouble = (amount as NSString).doubleValue
+//        let colors = ["Yellow","Red","Purple","Green"]
+//        let expense = Expense(remark: remark, amount: amountInDouble, date: date, type: type, color: colors.randomElement() ?? "Yellow")
+//        withAnimation {expenses.append(expense!)}
+//        expenses = expenses.sorted(by: { first, scnd in
+//            return scnd.date > first.date
+//        })
+//        env.dismiss()
+//    }
+    
+    // MARK: - Add Button Pressed
+    func addButtonPressed(env:EnvironmentValues) {
+        guard !remark.isEmpty else { return }
+        guard !amount.isEmpty else { return }
+        addItem(env: env)
+    }
+    
+    // MARK: - Add Item Expense to CloudKit
+    func addItem(env:EnvironmentValues){
         let amountInDouble = (amount as NSString).doubleValue
         let colors = ["Yellow","Red","Purple","Green"]
-        let expense = Expense(remark: remark, amount: amountInDouble, date: date, type: type, color: colors.randomElement() ?? "Yellow")
-        withAnimation {expenses.append(expense!)}
-        expenses = expenses.sorted(by: { first, scnd in
-            return scnd.date > first.date
-        })
-        env.dismiss()
+        guard let newExpense = Expense(remark: remark, amount: amountInDouble, date: date, type: type, color: colors.randomElement() ?? "Yellow", tag: tag ) else { return }
+        CloudKitUtility.add(item: newExpense) { [weak self ] result in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                self?.clearData()
+                self?.fetchItem()
+                env.dismiss()
+                self?.showProgress = false
+            }
+        }
     }
+    
+    // MARK: - Fetch Item expense From CloudKit
+    func fetchItem() {
+        let predicate = NSPredicate(value: true)
+        let recordType = ExpenseNames.nameRecordType
+        CloudKitUtility.fetch(predicate: predicate, recordType: recordType)
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                
+            } receiveValue: { [weak self] returnedItems in
+                self?.expenses = returnedItems
+            }
+            .store(in: &cancellables)
+        
+    }
+    
+    func updateItem(expense: Expense) {
+        // MARK: - Do something
+    }
+    
+    func deleteItem(indexSet: IndexSet){
+        guard let index = indexSet.first else { return }
+        let expenses = expenses[index]
+        
+        CloudKitUtility.delete(item: expenses)
+            .receive(on: DispatchQueue.main)
+            .sink { _ in
+                
+            } receiveValue: { [weak self] success in
+                print("Delete id \(success)")
+                self?.expenses.remove(at: index)
+            }
+            .store(in: &cancellables)
+    }
+    
+    
 }
 
 
@@ -116,15 +186,15 @@ class ExpenseCloudViewModel: ObservableObject {
     var cancellables = Set<AnyCancellable>()
     
     init(){
-        fetchItem()
+        cloudKitFetchItem()
     }
     
-    func addButtonPressed() {
+    func cloudkitAddButtonPressed() {
         guard !text.isEmpty else { return }
-        addItem(name: text)
+        cloudkitAddItem(name: text)
     }
     
-    private func addItem(name: String) {
+    private func cloudkitAddItem(name: String) {
         guard
             let image = UIImage(named: "ExpenseTestJPEG"),
             let url = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first?.appendingPathComponent("ExpenseTestJPEG.jpeg"),
@@ -135,7 +205,7 @@ class ExpenseCloudViewModel: ObservableObject {
             CloudKitUtility.add(item: newExpense) { [weak self ] result in
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self?.text = ""
-                    self?.fetchItem()
+                    self?.cloudKitFetchItem()
                 }
             }
         } catch let error {
@@ -143,7 +213,7 @@ class ExpenseCloudViewModel: ObservableObject {
         }
     }
     
-    func fetchItem() {
+    func cloudKitFetchItem() {
         let predicate = NSPredicate(value: true)
         let recordType = "Expense"
         CloudKitUtility.fetch(predicate: predicate, recordType: recordType)
@@ -156,15 +226,15 @@ class ExpenseCloudViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    func updateItem(expense: ExpenseCloudModel) {
+    func cloudkitUpdateItem(expense: ExpenseCloudModel) {
         guard let newExpemse = expense.update(newName: "Test Update !!") else { return }
         CloudKitUtility.update(item: newExpemse) { [weak self]result in
             print("Update Complete")
-            self?.fetchItem()
+            self?.cloudKitFetchItem()
         }
     }
     
-    func deleteItem(indexSet: IndexSet) {
+    func cloudkitDeleteItem(indexSet: IndexSet) {
         guard let index = indexSet.first else { return }
         let expenses = expense[index]
         

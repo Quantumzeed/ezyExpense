@@ -10,15 +10,15 @@ import SwiftUI
 struct Home: View {
     @StateObject var expenseViewModel: ExpenseViewModel = .init()
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false){
-            VStack(spacing: 12) {
+        VStack{
+            VStack{
                 HStack(spacing: 15) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Welcome!")
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.gray)
-                        Text("iJustine")
+                        Text("ออมตัง")
                             .font(.title2.bold())
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,19 +35,23 @@ struct Home: View {
                                     .padding(7)
                             })
                             .frame(width: 40, height: 40)
-                            .background(Color.white,in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+                            .background(Color(.systemBackground),in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .shadow(color: .secondary.opacity(0.4), radius: 5, x: 5, y: 5)
                     }
                 }
                 ExpenseCard()
                     .environmentObject(expenseViewModel)
-                TransactionsView()
-            }.padding()
+            }
+            .padding(.horizontal,12)
+//            .padding(.vertical,0)
+//            .padding(.bottom,0)
+            TransactionsView()
         }
-        .background{
-            Color("BG")
-                .ignoresSafeArea()
-        }
+        
+//        .background{
+//            Color("BG")
+//                .ignoresSafeArea()
+//        }
         .fullScreenCover(isPresented: $expenseViewModel.addNewExpense) {
             expenseViewModel.clearData()
         } content: {
@@ -56,8 +60,9 @@ struct Home: View {
         }
         .overlay(alignment: .bottomTrailing) {
             AddButton()
+                .opacity(0.85)
         }
-
+        
     }
     
     // MARK: - Add new Expense Button
@@ -83,23 +88,48 @@ struct Home: View {
                 .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
         }
         .padding()
-
+        
     }
     
     // MARK: - Transactions
     @ViewBuilder
     func TransactionsView()->some View{
-        VStack(spacing: 15){
-            Text("Transactions")
-                .font(.title2.bold())
-                .opacity(0.7)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack(spacing: 0){
             
-            ForEach(expenseViewModel.expenses) { expense in
-                // MARK: - Transaction Card View
-                TransactionCardView(expense: expense)
-                    .environmentObject(expenseViewModel)
+            List{
+                Text("รายการ")
+                    .font(.title2.bold())
+                    .opacity(0.7)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .listRowBackground(Color.clear)
+                
+                
+                
+                ForEach(expenseViewModel.expenses, id: \.self) { expense in
+                    // MARK: - Transaction Card View
+                    //                Text(expense.remark)
+                    TransactionCardView(expense: expense)
+                        .environmentObject(expenseViewModel)
+                }
+                .onDelete(perform: expenseViewModel.deleteItem)
+                .background {
+                    Color.clear
+                }
+                .listRowBackground(
+                    RoundedRectangle(cornerRadius: 15)
+                        .fill(Color(.secondarySystemBackground))
+//                        .fill(Color(.secondarySystemFill))
+                        .opacity(0.8)
+                        
+                        .padding(.horizontal,8)
+                        .padding(4)
+                )
+//                .listRowSeparator(.automatic)
+                .listRowSeparator(.hidden)
             }
+            
+            .listStyle(.plain)
+            //            .scrollContentBackground(.hidden)
             
         }
     }

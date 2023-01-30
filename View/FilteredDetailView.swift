@@ -22,8 +22,8 @@ struct FilteredDetailView: View {
                         Image(systemName: "arrow.backward.circle.fill")
                             .foregroundColor(.gray)
                             .frame(width: 40, height: 40)
-                            .background(Color.white,in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+                            .background(Color(.systemBackground),in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .shadow(color: .secondary.opacity(0.4), radius: 5, x: 5, y: 5)
                     }
 
                     Text("Transactions!")
@@ -37,15 +37,15 @@ struct FilteredDetailView: View {
                         Image(systemName: "slider.horizontal.3")
                             .foregroundColor(.gray)
                             .frame(width: 40, height: 40)
-                            .background(Color.white,in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .shadow(color: .black.opacity(0.1), radius: 5, x: 5, y: 5)
+                            .background(Color(.systemBackground),in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .shadow(color: .secondary.opacity(0.4), radius: 5, x: 5, y: 5)
                     }
 
                 }
                 
                 // MARK: - ExpenseCard View For Currently Selected Date
-                ExpenseCard(isFilter: true)
-                    .environmentObject(expenseViewModel)
+//                ExpenseCard(isFilter: true)
+//                    .environmentObject(expenseViewModel)
                 
                 CustomSegmentedControl()
                     .padding(.top)
@@ -64,22 +64,25 @@ struct FilteredDetailView: View {
                 .frame(maxWidth: .infinity)
                 .background{
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(.white)
-                }
+                        .fill(Color(.secondarySystemBackground))
+                        .opacity(0.8)                }
                 .padding(.vertical,20)
+                
                 
                 ForEach(expenseViewModel.expenses.filter{ return $0.type == expenseViewModel.tabName && $0.date > expenseViewModel.startDate && $0.date < expenseViewModel.endDate }) { expense in
                     TransactionCardView(expense: expense)
                         .environmentObject(expenseViewModel)
+                    
                 }
+                
             }
             .padding()
         }
         .navigationBarHidden(true)
-        .background{
-            Color("BG")
-                .ignoresSafeArea()
-        }
+//        .background{
+//            Color("BG")
+//                .ignoresSafeArea()
+//        }
         .overlay {
             FilterView()
         }
@@ -113,7 +116,8 @@ struct FilteredDetailView: View {
                 .padding(20)
                 .background{
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(.white)
+                        .fill(Color(.secondarySystemBackground))
+                        .opacity(0.8)
                     
                 }
                 // MARK: - close Button
@@ -123,7 +127,7 @@ struct FilteredDetailView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title3)
-                            .foregroundColor(.black)
+//                            .foregroundColor(.black)
                             .padding(5)
                     }
 
@@ -141,7 +145,7 @@ struct FilteredDetailView: View {
             ForEach([ExpenseType.income,ExpenseType.expense],id:\.rawValue) { tab in
                 Text(tab.rawValue.capitalized)
                     .fontWeight(.semibold)
-                    .foregroundColor(expenseViewModel.tabName == tab ? .white : .black)
+//                    .foregroundColor(expenseViewModel.tabName == tab ? .white : .black)
                     .opacity(expenseViewModel.tabName == tab ? 1 : 0.7)
                     .padding(.vertical,12)
                     .frame(maxWidth: .infinity)
@@ -170,7 +174,8 @@ struct FilteredDetailView: View {
         .padding(5)
         .background{
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.white)
+                .fill(Color(.secondarySystemBackground))
+                .opacity(0.8)
         }
     }
 }

@@ -33,7 +33,7 @@ struct ContentView: View {
 //            .ignoresSafeArea(.all)
 //
 //        }
-        NavigationView {
+        NavigationStack {
             Home()
                 .navigationBarHidden(true)
         }
