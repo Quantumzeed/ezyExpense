@@ -43,7 +43,7 @@ struct ExpenseCard: View {
                         .background(.white.opacity(0.7),in:Circle())
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Income")
+                        Text("รายรับ")
                             .font(.caption)
                             .opacity(0.7)
                         
@@ -62,7 +62,7 @@ struct ExpenseCard: View {
                         .background(.white.opacity(0.7),in:Circle())
                     
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Expenses")
+                        Text("รายจ่าย")
                             .font(.caption)
                             .opacity(0.7)
                         

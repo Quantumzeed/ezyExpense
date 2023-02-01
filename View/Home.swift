@@ -111,7 +111,7 @@ struct Home: View {
                     TransactionCardView(expense: expense)
                         .environmentObject(expenseViewModel)
                 }
-                .onDelete(perform: expenseViewModel.deleteItem)
+//                .onDelete(perform: expenseViewModel.deleteItem)
                 .background {
                     Color.clear
                 }
@@ -138,6 +138,6 @@ struct Home: View {
 
 struct Home_Previews: PreviewProvider {
     static var previews: some View {
-        Home()
+        ContentView()
     }
 }

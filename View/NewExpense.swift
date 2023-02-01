@@ -188,7 +188,7 @@ struct NewExpense: View {
                  } label: {
                      Image(systemName: "xmark")
                          .font(.title2)
-                         .foregroundColor(.black)
+                         .foregroundColor(.primary)
                          .opacity(0.7)
                  }
 

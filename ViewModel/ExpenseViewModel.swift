@@ -63,7 +63,7 @@ class ExpenseViewModel: ObservableObject{
     func convertExpensesToCurrency(expense: [Expense], type:ExpenseType = .all)->String{
         var value: Double = 0
         value = expense.reduce(0, { partialResult, expense in
-            return partialResult + (expense.type == .all ? (expense.type == . income ? expense.amount : -expense.amount) : (expense.type == type ? expense.amount : 0))
+            return partialResult + (type == .all ? (expense.type == .income ? expense.amount : -expense.amount) : (expense.type == type ? expense.amount : 0))
         })
         return convertNumbertoPrice(value: value)
     }
@@ -72,7 +72,7 @@ class ExpenseViewModel: ObservableObject{
         var value: Double = 0
         value = expense.reduce(0, { partialResult, expense in
             
-            return partialResult + (expense.type == .all ? (expense.type == .income && expense.date > startDate && expense.date < endDate ? expense.amount : -expense.amount) : (expense.type == type && expense.date > startDate && expense.date < endDate ? expense.amount : 0) )
+            return partialResult + (type == .all ? (expense.type == .income && expense.date > startDate && expense.date < endDate ? expense.amount : -expense.amount) : (expense.type == type && expense.date > startDate && expense.date < endDate ? expense.amount : 0) )
         })
         return convertNumbertoPrice(value: value)
     }
@@ -96,6 +96,7 @@ class ExpenseViewModel: ObservableObject{
         type = .all
         remark = ""
         amount = ""
+        tag = ""
     }
     
     // MARK: - Save Data

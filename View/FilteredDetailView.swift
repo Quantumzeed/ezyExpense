@@ -12,21 +12,22 @@ struct FilteredDetailView: View {
     @Environment(\.self) var env
     @Namespace var animation
     var body: some View {
-        ScrollView(.vertical, showsIndicators: false) {
-            VStack(spacing:15) {
+            VStack(spacing:0) {
+                VStack{
                 HStack(spacing: 15) {
                     // MARK: - Back Button
                     Button {
                         env.dismiss()
                     } label: {
                         Image(systemName: "arrow.backward.circle.fill")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
+//                            .foregroundColor(.gray)
                             .frame(width: 40, height: 40)
                             .background(Color(.systemBackground),in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                             .shadow(color: .secondary.opacity(0.4), radius: 5, x: 5, y: 5)
                     }
 
-                    Text("Transactions!")
+                    Text("รายการ")
                         .font(.caption)
                         .opacity(0.7)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -35,7 +36,8 @@ struct FilteredDetailView: View {
                         expenseViewModel.showFilterView = true
                     } label: {
                         Image(systemName: "slider.horizontal.3")
-                            .foregroundColor(.gray)
+                            .foregroundColor(.secondary)
+//                            .foregroundColor(.gray)
                             .frame(width: 40, height: 40)
                             .background(Color(.systemBackground),in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                             .shadow(color: .secondary.opacity(0.4), radius: 5, x: 5, y: 5)
@@ -49,6 +51,7 @@ struct FilteredDetailView: View {
                 
                 CustomSegmentedControl()
                     .padding(.top)
+                    
                 
                 // MARK: - Currently Filtered Date with Amount
                 VStack(spacing:15){
@@ -57,28 +60,65 @@ struct FilteredDetailView: View {
                     
                     Text(expenseViewModel.convertExpensesToCurrencyWithFilter(expense: expenseViewModel.expenses, type: expenseViewModel.tabName))
                         .font(.title.bold())
+                        .foregroundColor(Color("Gradient2"))
                         .opacity(0.9)
                         .animation(.none, value: expenseViewModel.tabName)
                 }
                 .padding()
+                
                 .frame(maxWidth: .infinity)
                 .background{
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(.secondarySystemBackground))
+                        .stroke(LinearGradient(colors:
+                                                [Color("Gradient1"),
+                                                 Color("Gradient2"),
+                                                 Color("Gradient3"),
+                                                ], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                        .background(content: {
+                            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                .fill(Color(.secondarySystemBackground))
+                        })
+//                        .fill(Color(.secondarySystemBackground))
                         .opacity(0.8)                }
                 .padding(.vertical,20)
                 
-                
-                ForEach(expenseViewModel.expenses.filter{ return $0.type == expenseViewModel.tabName && $0.date > expenseViewModel.startDate && $0.date < expenseViewModel.endDate }) { expense in
-                    TransactionCardView(expense: expense)
-                        .environmentObject(expenseViewModel)
                     
                 }
+                .padding(.horizontal)
+                .shadow(color: .secondary.opacity(0.25), radius: 2, x: 2, y: 2)
+                
+                
+                List {
+                    ForEach(expenseViewModel.expenses.filter{ return $0.type == expenseViewModel.tabName && $0.date > expenseViewModel.startDate && $0.date < expenseViewModel.endDate }) { expense in
+                        TransactionCardView(expense: expense)
+                            .environmentObject(expenseViewModel)
+                        
+                    }
+                    .onDelete(perform: expenseViewModel.deleteItem)
+                    
+                    .background {
+                        Color.clear
+                    }
+                    .listRowBackground(
+                        RoundedRectangle(cornerRadius: 15)
+                            .fill(Color(.secondarySystemBackground))
+                        //                        .fill(Color(.secondarySystemFill))
+                            .opacity(0.8)
+                        
+                            .padding(.horizontal,8)
+                                                                  .padding(4)
+                    )
+                    //                .listRowSeparator(.automatic)
+                    .listRowSeparator(.hidden)
+                }
+                .listStyle(.plain)
+                
+                
+                
                 
             }
-            .padding()
-        }
-        .navigationBarHidden(true)
+            .padding(0)
+            .navigationBarHidden(true)
 //        .background{
 //            Color("BG")
 //                .ignoresSafeArea()
@@ -117,6 +157,7 @@ struct FilteredDetailView: View {
                 .background{
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .fill(Color(.secondarySystemBackground))
+                    
                         .opacity(0.8)
                     
                 }
@@ -127,6 +168,7 @@ struct FilteredDetailView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title3)
+                            .foregroundColor(.primary)
 //                            .foregroundColor(.black)
                             .padding(5)
                     }
@@ -143,7 +185,7 @@ struct FilteredDetailView: View {
     func CustomSegmentedControl()->some View{
         HStack(spacing:0){
             ForEach([ExpenseType.income,ExpenseType.expense],id:\.rawValue) { tab in
-                Text(tab.rawValue.capitalized)
+                Text(tab == .income ? "รายรับ" : "รายจ่าย")
                     .fontWeight(.semibold)
 //                    .foregroundColor(expenseViewModel.tabName == tab ? .white : .black)
                     .opacity(expenseViewModel.tabName == tab ? 1 : 0.7)
@@ -174,7 +216,15 @@ struct FilteredDetailView: View {
         .padding(5)
         .background{
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(Color(.secondarySystemBackground))
+                .stroke(LinearGradient(colors:
+                                        [Color("Gradient1"),
+                                         Color("Gradient2"),
+                                         Color("Gradient3"),
+                                        ], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 0.75)
+                .background(content: {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(Color(.secondarySystemBackground))
+                })
                 .opacity(0.8)
         }
     }
