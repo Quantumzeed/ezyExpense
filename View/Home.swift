@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct Home: View {
+    @State private var showProfile: Bool = false
     @StateObject var expenseViewModel: ExpenseViewModel = .init()
     var body: some View {
         VStack{
@@ -18,6 +19,16 @@ struct Home: View {
                             .font(.caption)
                             .fontWeight(.semibold)
                             .foregroundColor(.gray)
+                            .onTapGesture {
+                                withAnimation {
+                                    showProfile = true
+                                }
+                            }
+                            .sheet(isPresented: $showProfile) {
+                                profile()
+                                    .presentationDetents([.medium, .large])
+                            }
+
                         Text("ออมตัง")
                             .font(.title2.bold())
                     }
@@ -48,10 +59,25 @@ struct Home: View {
             TransactionsView()
         }
         
-//        .background{
-//            Color("BG")
-//                .ignoresSafeArea()
-//        }
+        .background{
+            Color("Gradient2")
+                .opacity(0.1)
+                .ignoresSafeArea()
+            Circle()
+                .foregroundColor(Color("Gradient3"))
+                .blur(radius: 75)
+                .frame(width: 300, height: 300)
+                .offset(x: -200, y: -100)
+            
+            Circle()
+                .foregroundColor(Color("Gradient1"))
+                .blur(radius: 75)
+                .frame(width: 300, height: 300)
+                .offset(x: 200, y: 250)
+            
+            
+//
+        }
         .fullScreenCover(isPresented: $expenseViewModel.addNewExpense) {
             expenseViewModel.clearData()
         } content: {
@@ -117,8 +143,8 @@ struct Home: View {
                 }
                 .listRowBackground(
                     RoundedRectangle(cornerRadius: 15)
-                        .fill(Color(.secondarySystemBackground))
-//                        .fill(Color(.secondarySystemFill))
+//                        .fill(Color(.secondarySystemBackground))
+                        .fill(.ultraThinMaterial)
                         .opacity(0.8)
                         
                         .padding(.horizontal,8)

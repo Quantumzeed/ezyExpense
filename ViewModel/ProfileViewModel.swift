@@ -1,8 +1,8 @@
 //
-//  profile.swift
+//  ProfileViewModel.swift
 //  ezExpense
 //
-//  Created by Quantum on 10/1/2566 BE.
+//  Created by Quantum on 10/2/2566 BE.
 //
 
 import SwiftUI
@@ -71,50 +71,3 @@ class ProfileViewModel: ObservableObject {
     
 }
 
-
-struct profile: View {
-    @StateObject private var vmProfile = ProfileViewModel()
-    @StateObject private var vmNotify = CloudKitPushNotificationViewModel()
-    
-    var body: some View {
-        VStack {
-            HStack{
-                Text("Cloud☁️")
-                    .foregroundColor(Color.accentColor)
-                if vmProfile.isSignIntoiCloud {
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(.green)
-                } else {
-                    Image(systemName: "xmark.circle")
-                        .foregroundColor(.red)
-                }
-                Text(vmProfile.error)
-            }
-                Text("Permission: \(vmProfile.permissionStatus.description.uppercased())")
-                Text("NAME: \(vmProfile.userName)")
-            
-            
-            VStack(spacing: 40){
-                
-                Button("Request notification permissions") {
-                    vmNotify.requestNotificationPermission()
-                }
-                
-                Button("Subscribe to notification") {
-                    vmNotify.subscribeRoNotification()
-                }
-                
-                Button("Unsubscribe to notification") {
-                    vmNotify.subscribeRoNotification()
-                }
-            }
-        }
-        .padding()
-    }
-}
-
-struct profile_Previews: PreviewProvider {
-    static var previews: some View {
-        profile()
-    }
-}
